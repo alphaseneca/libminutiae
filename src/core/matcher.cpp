@@ -80,19 +80,43 @@ bool Matcher::match(
                 float cand_aligned_x_um = rot_x_um + e_ref_x_um;
                 float cand_aligned_y_um = rot_y_um + e_ref_y_um;
 
-                float best_dist_um = m_config.physical_distance_threshold_um;
+                // Rotated candidate minutia orientation angle
+                float cand_aligned_angle = c.angle_deg - d_angle_deg;
+                while (cand_aligned_angle >= 360.0f) cand_aligned_angle -= 360.0f;
+                while (cand_aligned_angle < 0.0f)    cand_aligned_angle += 360.0f;
+
+                float best_cost = 1e9f;
                 int best_idx = -1;
 
                 for (size_t ej = 0; ej < enrolled_template.minutiae.size(); ++ej) {
                     if (enrolled_matched[ej]) continue;
 
                     const auto& e = enrolled_template.minutiae[ej];
+
+                    // 1. Minutia Type: Ending must match Ending, Bifurcation must match Bifurcation
+                    if (c.type != e.type && c.type != MinutiaeType::OTHER && e.type != MinutiaeType::OTHER) {
+                        continue;
+                    }
+
+                    // 2. Spatial Distance: Must fall within physical distance threshold
                     float ex_um = e.x * enr_scale_um;
                     float ey_um = e.y * enr_scale_um;
-
                     float dist_um = std::hypot(cand_aligned_x_um - ex_um, cand_aligned_y_um - ey_um);
-                    if (dist_um < best_dist_um) {
-                        best_dist_um = dist_um;
+                    if (dist_um > m_config.physical_distance_threshold_um) {
+                        continue;
+                    }
+
+                    // 3. Angular Orientation: Ridge flow direction must match within tolerance
+                    float d_theta = std::abs(cand_aligned_angle - e.angle_deg);
+                    if (d_theta > 180.0f) d_theta = 360.0f - d_theta;
+                    if (d_theta > m_config.max_angle_tolerance_deg) {
+                        continue;
+                    }
+
+                    // Geometric cost function balancing distance and angle
+                    float cost = dist_um + (d_theta * 4.0f);
+                    if (cost < best_cost) {
+                        best_cost = cost;
                         best_idx = static_cast<int>(ej);
                     }
                 }
@@ -112,8 +136,12 @@ bool Matcher::match(
     size_t min_count = std::min(candidate_minutiae.size(), enrolled_template.minutiae.size());
     if (min_count == 0) return false;
 
-    float score_ratio = static_cast<float>(best_matches) / static_cast<float>(min_count);
-    out_score = static_cast<uint8_t>(std::clamp(std::round(score_ratio * 100.0f), 0.0f, 100.0f));
+    // A genuine biometric match requires both a significant absolute number of matching points
+    // (forensic standard >= 12 points, or all points for small templates) and a high proportional ratio.
+    float ratio = static_cast<float>(best_matches) / static_cast<float>(min_count);
+    float required_points = std::min(12.0f, static_cast<float>(min_count));
+    float count_factor = (required_points > 0.0f) ? std::min(1.0f, static_cast<float>(best_matches) / required_points) : 1.0f;
+    out_score = static_cast<uint8_t>(std::clamp(std::round(ratio * count_factor * 100.0f), 0.0f, 100.0f));
 
     return out_score >= m_config.match_score_threshold;
 }

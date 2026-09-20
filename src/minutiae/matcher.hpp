@@ -6,12 +6,13 @@ namespace minutiae {
 
 struct MatcherConfig {
     // Physical spatial threshold in micrometers (um)
-    // Human epidermal ridge pitch is ~300 to 500 um.
-    // 300 um represents approx 6 pixels on a 508 DPI sensor.
-    float physical_distance_threshold_um = 300.0f;
-    float max_rotation_deg = 20.0f;          // Rotation tolerance window
+    // Human epidermal ridge pitch is ~350 to 500 um.
+    // 200 um represents approx 4 pixels on a 508 DPI sensor (half ridge pitch).
+    float physical_distance_threshold_um = 200.0f;
+    float max_rotation_deg = 25.0f;          // Rotation alignment search window (+/- deg)
+    float max_angle_tolerance_deg = 20.0f;   // Minutia orientation tolerance (+/- deg)
     uint8_t match_score_threshold = 55;      // Minimum score (0-100) for a positive match
-    uint8_t adaptation_score_threshold = 75; // Minimum score required to trigger self-learning
+    uint8_t adaptation_score_threshold = 80; // Minimum score required to trigger self-learning
     uint16_t max_template_minutiae = 80;     // Maximum minutiae points stored
     uint8_t border_margin_px = 8;            // Exclude border artifacts
 };

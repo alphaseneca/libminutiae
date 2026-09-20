@@ -50,11 +50,12 @@ int main(int argc, char* argv[]) {
     std::cout << "    Silicon Chip UID:     " << (chip_uid.empty() ? "UNKNOWN" : chip_uid) << "\n";
     std::cout << "    Resolution:           " << info.width_px << "x" << info.height_px << " @ " << info.resolution_dpi << " DPI\n\n";
 
-    // Configure Engine with realistic human finger placement tolerances
+    // Configure Engine with strict biometric verification tolerances
     minutiae::MatcherConfig matcher_cfg;
-    matcher_cfg.physical_distance_threshold_um = 350.0f; // ~7 pixels at 508 DPI
-    matcher_cfg.max_rotation_deg = 25.0f;               // +/- 25 degrees placement variation
-    matcher_cfg.match_score_threshold = 45;             // Standard verification threshold for small capacitive sensors
+    matcher_cfg.physical_distance_threshold_um = 200.0f; // ~4 pixels at 508 DPI (half-pitch tolerance)
+    matcher_cfg.max_rotation_deg = 25.0f;               // +/- 25 degrees rotational tolerance
+    matcher_cfg.max_angle_tolerance_deg = 20.0f;        // +/- 20 degrees minutia angle agreement
+    matcher_cfg.match_score_threshold = 55;             // Strict threshold rejecting impostor fingers
     minutiae::Engine engine(matcher_cfg);
 
     // ========================================================================
@@ -113,13 +114,21 @@ int main(int argc, char* argv[]) {
 
     // Signal Enrollment Success
     sensor.set_led(minutiae::drivers::LedMode::FLASHING, minutiae::drivers::LedColor::GREEN, minutiae::drivers::LedColor::GREEN, 3);
-    std::cout << "[***] ENROLLMENT COMPLETE! Please LIFT your finger off the sensor.\n\n";
+    std::cout << "[***] ENROLLMENT COMPLETE! Please LIFT your finger completely off the sensor.\n";
+    std::cout << "    Waiting for finger release..." << std::flush;
 
-    // Wait for finger release
-    while (sensor.is_finger_present()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // Require at least 3 consecutive confirmed no-finger states to ensure genuine release
+    int release_streak = 0;
+    while (release_streak < 3) {
+        if (!sensor.is_finger_present()) {
+            release_streak++;
+        } else {
+            release_streak = 0;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    std::cout << " [CONFIRMED LIFTED]\n\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(600));
 
     // ========================================================================
     // STEP 2: BIOMETRIC VERIFICATION (1:1 AUTHENTICATION)
