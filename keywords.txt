@@ -1,0 +1,49 @@
+#######################################
+# Syntax Coloring Map For libminutiae
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+minutiae	KEYWORD1
+BiometricTemplate	KEYWORD1
+Minutia	KEYWORD1
+RawImage	KEYWORD1
+IDeviceDriver	KEYWORD1
+ITransport	KEYWORD1
+R558S	KEYWORD1
+NFIQ2Report	KEYWORD1
+Engine	KEYWORD1
+Matcher	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+extract_minutiae	KEYWORD2
+evaluate_quality	KEYWORD2
+create_template	KEYWORD2
+verify	KEYWORD2
+adapt	KEYWORD2
+save_fmr_file	KEYWORD2
+load_fmr_file	KEYWORD2
+read_chip_unique_id	KEYWORD2
+set_led	KEYWORD2
+capture_raw_image	KEYWORD2
+get_hardware_random	KEYWORD2
+auto_enroll	KEYWORD2
+search_database	KEYWORD2
+empty_database	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+FMR_MAGIC_ID	LITERAL1
+ISO_19794_2_VERSION_2005	LITERAL1
+ISO_19794_2_VERSION_2011	LITERAL1
+ANSI_378_VERSION_2004	LITERAL1
+ANSI_378_VERSION_2009	LITERAL1
+RESOLUTION_508_DPI	LITERAL1
+RESOLUTION_500_DPI	LITERAL1

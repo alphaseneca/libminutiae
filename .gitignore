@@ -1,0 +1,42 @@
+# ==============================================================================
+# Biometric Privacy & Security - Strict Ignored Data
+# Real fingerprint raw frames and standard FMR templates must NEVER be committed.
+# ==============================================================================
+*.pgm
+*.fmr
+*.bmp
+*.raw
+*.bin
+*.iso
+*.ansi
+*.trace
+*.log
+
+# ==============================================================================
+# Build Artifacts & Binaries
+# ==============================================================================
+build/
+bin/
+out/
+*.exe
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.pdb
+*.ilk
+
+# ==============================================================================
+# IDE & System Files
+# ==============================================================================
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
+*.sln.docstates
+.DS_Store
+Thumbs.db
